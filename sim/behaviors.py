@@ -60,7 +60,9 @@ def chase_ball(robot, ball):
 
 
 def dribble_to_center(robot, ball, frame_shape):
-    """Modo 4: perseguir la pelota; al tenerla, rodillo + llevarla al centro."""
+    """Perseguir la pelota; al tenerla, rodillo + llevarla al centro.
+    No se usa por defecto en los menus (reemplazada por score_goal), se
+    deja disponible por si sirve para probar solo el dribbling."""
     if ball.pos == (-1, -1):
         return 0, 0, 0, 0
 
@@ -73,4 +75,52 @@ def dribble_to_center(robot, ball, frame_shape):
 
     centro = (frame_shape[1] / 2, frame_shape[0] / 2)
     vl, vr = to_target(robot, centro, k_lin=0.25)
+    return vl, vr, 0, 70
+
+
+GOAL_SHOOT_DIST_PX = 150   # a esta distancia del arco, deja de avanzar y patea
+
+
+def _goal_point(frame_shape, side):
+    """Punto medio del arco propio ('own', borde izquierdo) o rival
+    ('opp', borde derecho). Asume el arco centrado en el borde
+    correspondiente, igual que simulator/camera_sim.py."""
+    height, width = frame_shape[0], frame_shape[1]
+    y = height / 2
+    x = 0 if side == "own" else width
+    return (x, y)
+
+
+def return_to_goal(robot, frame_shape, side="own"):
+    """Modo 5: volver a la posicion defensiva, frente al arco propio."""
+    target = _goal_point(frame_shape, side)
+    vl, vr = to_target(robot, target)
+    return vl, vr, 0, 0
+
+
+def score_goal(robot, ball, frame_shape, opp_side="opp"):
+    """Modo 4: ir a la pelota, agarrarla con el rodillo, encararla hacia el
+    arco rival y patear cuando este suficientemente cerca y alineado."""
+    if ball.pos == (-1, -1):
+        return 0, 0, 0, 0
+
+    d_robot_pelota = math.hypot(ball.pos[0] - robot.pos[0], ball.pos[1] - robot.pos[1])
+    tiene_pelota = d_robot_pelota < STOP_DIST_PX * 1.5
+
+    if not tiene_pelota:
+        vl, vr = to_target(robot, ball.pos)
+        return vl, vr, 0, 0
+
+    gx, gy = _goal_point(frame_shape, opp_side)
+    d_arco = math.hypot(gx - robot.pos[0], gy - robot.pos[1])
+
+    if d_arco < GOAL_SHOOT_DIST_PX:
+        # ya esta cerca: dejar de avanzar, solo terminar de alinear y patear.
+        # sol=1 se mantiene, pero el disparo real es por flanco (edge-trigger)
+        # dentro de firmware/hw.py / simulator/hw_sim.py, asi que no se
+        # dispara en bucle mientras sol siga en 1.
+        vl, vr = to_target(robot, (gx, gy), k_lin=0.0)
+        return vl, vr, 1, 70
+
+    vl, vr = to_target(robot, (gx, gy), k_lin=0.25)
     return vl, vr, 0, 70

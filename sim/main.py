@@ -1,13 +1,19 @@
 """
-Simulador sin hardware: corre las mismas rutinas de demo (behaviors.py)
-sobre un robot y una pelota simulados en pygame. Sirve para probar y
-calibrar ganancias antes de subir nada al robot real.
+Simulador RAPIDO, sin camara ni ArUco: corre las mismas rutinas de demo
+(behaviors.py) directo sobre la posicion/angulo "verdaderos" del robot
+simulado (sin pasar por deteccion de imagen). Sirve para iterar rapido
+las ganancias de control.
+
+Para probar el pipeline completo (camara simulada + deteccion ArUco +
+color, igual que sera con hardware real), usar en cambio:
+    simulator/run_simulator.py  +  autonomous/main_sim.py
 
 Modos (teclas):
-  1  IDLE
+  1  Detente (idle)
   2  Ir al centro de la cancha
-  3  Perseguir la pelota
-  4  Llevar la pelota al centro (dribbling)
+  3  Dirigete a la pelota
+  4  Mete gol
+  5  Vuelve al arco (propio)
   r  Reiniciar posiciones
   q / ESC  Salir
 """
@@ -22,6 +28,7 @@ from physics import SimRobot, SimBall
 WIDTH, HEIGHT = 800, 600
 FPS = 60
 CAPTURE_DIST = 30
+GOAL_HALF_HEIGHT = int(HEIGHT * 0.18)
 
 WHITE = (255, 255, 255)
 GREEN = (0, 150, 0)
@@ -39,6 +46,10 @@ def draw(screen, robot, ball, mode):
     screen.fill(GREEN)
     pygame.draw.rect(screen, WHITE, (0, 0, WIDTH, HEIGHT), 4)
 
+    cy = HEIGHT // 2
+    pygame.draw.line(screen, WHITE, (0, cy - GOAL_HALF_HEIGHT), (0, cy + GOAL_HALF_HEIGHT), 6)
+    pygame.draw.line(screen, WHITE, (WIDTH - 1, cy - GOAL_HALF_HEIGHT), (WIDTH - 1, cy + GOAL_HALF_HEIGHT), 6)
+
     rad = math.radians(robot.angle)
     nose = (robot.x + 18 * math.cos(rad), robot.y + 18 * math.sin(rad))
     pygame.draw.circle(screen, RED, (int(robot.x), int(robot.y)), 15)
@@ -48,7 +59,7 @@ def draw(screen, robot, ball, mode):
 
     font = pygame.font.SysFont(None, 24)
     txt = font.render(
-        f"modo {mode}  (1 idle, 2 centro, 3 perseguir, 4 dribbling, r reset, q salir)",
+        f"modo {mode}  (1 detente, 2 centro, 3 pelota, 4 gol, 5 arco, r reset, q salir)",
         True, BLACK,
     )
     screen.blit(txt, (10, 10))
@@ -80,7 +91,7 @@ def main():
                 elif event.key == pygame.K_r:
                     reset(robot, ball)
                     captured = False
-                elif event.unicode in ("1", "2", "3", "4"):
+                elif event.unicode in ("1", "2", "3", "4", "5"):
                     mode = event.unicode
 
         # behaviors.py solo necesita .pos / .angle en robot y ball,
@@ -91,7 +102,9 @@ def main():
         elif mode == "3":
             vl, vr, sol, rod = behaviors.chase_ball(robot, ball)
         elif mode == "4":
-            vl, vr, sol, rod = behaviors.dribble_to_center(robot, ball, (HEIGHT, WIDTH))
+            vl, vr, sol, rod = behaviors.score_goal(robot, ball, (HEIGHT, WIDTH))
+        elif mode == "5":
+            vl, vr, sol, rod = behaviors.return_to_goal(robot, (HEIGHT, WIDTH))
 
         robot.step(vl, vr, dt)
 
