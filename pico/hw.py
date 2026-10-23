@@ -25,9 +25,9 @@ led_azul = Pin(18, Pin.OUT)
 
 # ---- Driver 1 / Motor 1 (izquierdo) ----
 d1_stby = Pin(3, Pin.OUT)
-d1_ain1 = Pin(2, Pin.OUT)
-d1_ain2 = Pin(1, Pin.OUT)
-d1_pwma = PWM(Pin(0))
+d1_ain1 = Pin(17, Pin.OUT)
+d1_ain2 = Pin(12, Pin.OUT)
+d1_pwma = PWM(Pin(16))
 d1_enc_a = Pin(7, Pin.IN, Pin.PULL_UP)
 d1_enc_b = Pin(8, Pin.IN, Pin.PULL_UP)
 
