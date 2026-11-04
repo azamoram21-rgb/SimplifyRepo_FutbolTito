@@ -33,15 +33,15 @@ def test_encoders(segundos=2):
     print("  Girando M1 y M2 a duty=30, contando flancos de ENC_A...")
     count_1 = 0
     count_2 = 0
-    prev_1 = hw.d1_enc_a.value()
-    prev_2 = hw.d2_enc_a.value()
+    prev_1 = hw.mi_enc_a.value()
+    prev_2 = hw.md_enc_a.value()
     hw.set_left(30)
     hw.set_right(30)
     t_fin = time.ticks_add(time.ticks_ms(), int(segundos * 1000))
     try:
         while time.ticks_diff(t_fin, time.ticks_ms()) > 0:
-            v1 = hw.d1_enc_a.value()
-            v2 = hw.d2_enc_a.value()
+            v1 = hw.mi_enc_a.value()
+            v2 = hw.md_enc_a.value()
             if v1 and not prev_1:
                 count_1 += 1
             if v2 and not prev_2:
@@ -53,7 +53,7 @@ def test_encoders(segundos=2):
 
 
 def test_kick():
-    print("  Disparando solenoide...")
+    print("  Disparando kicker...")
     hw.kick()
     t_fin = time.ticks_add(time.ticks_ms(), 1000)
     while time.ticks_diff(t_fin, time.ticks_ms()) > 0:
@@ -62,11 +62,11 @@ def test_kick():
 
 
 def test_leds():
-    for led in (hw.led, hw.led_verde, hw.led_amarillo, hw.led_azul):
+    for led in (hw.led, hw.led_verde):
         led.on()
         time.sleep(0.3)
         led.off()
-    print("  LEDs probados (onboard, verde, amarillo, azul en orden).")
+    print("  LEDs probados (onboard y verde, en orden).")
 
 
 MENU = """
@@ -75,7 +75,7 @@ MENU = """
 2) Motor derecho (M2)
 3) Rodillo
 4) Encoders (gira M1 y M2 juntos, cuenta pulsos)
-5) Solenoide (kick)
+5) Kicker
 6) LEDs
 0) Salir
 """
