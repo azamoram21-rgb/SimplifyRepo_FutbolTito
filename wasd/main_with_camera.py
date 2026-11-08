@@ -28,7 +28,7 @@ RAMP = 6           # cambio maximo de duty por ciclo (a 20 Hz: 0->35 en ~0.3 s)
 # Compensacion para que avance recto. Baja la rueda que va mas rapida.
 # Si se ladea a la derecha, la izquierda es la rapida: baja TRIM_L.
 # Si se ladea a la izquierda, baja TRIM_R. Ajustar de a 0.03-0.05.
-TRIM_L = 1.00
+TRIM_L = 0.9
 TRIM_R = 1.00
 
 VIDEO_W, VIDEO_H = 640, 480    # tamano en pantalla; el video de la Pi (320x240) se escala a esto
